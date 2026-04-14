@@ -23,7 +23,7 @@ const IP_HDR_LEN: usize = mem::size_of::<iphdr>();
 static mut BACKEND_PORTS: HashMap<u16, BackendPorts> =
     HashMap::<u16, BackendPorts>::with_max_entries(10, 0);
 
-#[xdp(name = "demo")]
+#[xdp]
 pub fn demo(ctx: XdpContext) -> u32 {
     match try_demo(ctx) {
         Ok(ret) => ret,

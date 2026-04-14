@@ -5,9 +5,9 @@ edition = "2021"
 publish = false
 
 [dependencies]
-aya = { version = ">=0.11", features=["async_tokio"] }
-aya-bpf = { git = "https://github.com/aya-rs/aya", branch = "main" }
-aya-log = "0.1"
+aya = { git = "https://github.com/aya-rs/aya", rev = "aya-v0.12.0", features=["async_tokio"] }
+aya-bpf = { git = "https://github.com/aya-rs/aya", rev = "aya-v0.12.0" }
+aya-log = { git = "https://github.com/aya-rs/aya", rev = "aya-v0.12.0" }
 demo-common = { path = "../demo-common", features=["user"] }
 anyhow = "1.0.42"
 clap = { version = "3.1", features = ["derive"] }
