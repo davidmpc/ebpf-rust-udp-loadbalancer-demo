@@ -3,7 +3,12 @@ use tokio::net::UdpSocket;
 
 #[tokio::main]
 async fn main() {
-    let wait = vec![tokio::spawn(run_server(9875))];
+    let ports = vec![9875, 9876, 9877, 9878];
+    let mut wait = vec![];
+
+    for port in ports {
+        wait.push(tokio::spawn(run_server(port)));
+    }
 
     for t in wait {
         t.await.expect("server failed").unwrap();

@@ -38,8 +38,9 @@ async fn main() -> Result<(), anyhow::Error> {
     }
     let program: &mut Xdp = bpf.program_mut("demo").unwrap().try_into()?;
     program.load()?;
-    program.attach(&opt.iface, XdpFlags::default())
-        .context("failed to attach the XDP program with default flags - try changing XdpFlags::default() to XdpFlags::SKB_MODE")?;
+    program
+        .attach(&opt.iface, XdpFlags::SKB_MODE)
+        .context("failed to attach the XDP program")?;
 
     let mut backends: HashMap<_, u16, BackendPorts> = HashMap::try_from(
         bpf.map_mut("BACKEND_PORTS")

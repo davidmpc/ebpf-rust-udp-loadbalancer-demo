@@ -63,10 +63,23 @@ fn try_demo(ctx: XdpContext) -> Result<u32, u32> {
         }
     };
 
-    if backends.index > backends.ports.len() - 1 {
-        return Ok(xdp_action::XDP_ABORTED);
-    }
-    let new_destination_port = backends.ports[backends.index];
+    // IMPORTANT: `backends` is a map value pointer. The verifier is extremely picky about
+    // "pointer + variable offset" accesses into map values, even when Rust seems to bound-check.
+    // To keep the verifier happy, only perform constant-offset reads from the map value and then
+    // use `match` (no variable indexing) for selection.
+    let p0 = backends.ports[0];
+    let p1 = backends.ports[1];
+    let p2 = backends.ports[2];
+    let p3 = backends.ports[3];
+
+    let current_index = backends.index;
+    let new_destination_port = match current_index {
+        0 => p0,
+        1 => p1,
+        2 => p2,
+        3 => p3,
+        _ => return Ok(xdp_action::XDP_ABORTED),
+    };
     unsafe { (*udp).dest = u16::from_be(new_destination_port) };
 
     info!(
@@ -74,16 +87,27 @@ fn try_demo(ctx: XdpContext) -> Result<u32, u32> {
         "redirected port {} to {}", destination_port, new_destination_port
     );
 
-    let mut new_backends = BackendPorts {
-        ports: backends.ports,
-        index: backends.index + 1,
+    let mut next_index = match current_index {
+        0 => 1,
+        1 => 2,
+        2 => 3,
+        3 => 0,
+        _ => 0,
     };
-
-    if new_backends.index > new_backends.ports.len() - 1
-        || new_backends.ports[new_backends.index] == 0
-    {
-        new_backends.index = 0;
+    let next_port = match next_index {
+        0 => p0,
+        1 => p1,
+        2 => p2,
+        _ => p3,
+    };
+    if next_port == 0 {
+        next_index = 0;
     }
+
+    let new_backends = BackendPorts {
+        ports: [p0, p1, p2, p3],
+        index: next_index,
+    };
 
     match unsafe { BACKEND_PORTS.insert(&destination_port, &new_backends, 0) } {
         Ok(_) => {
